@@ -14,12 +14,23 @@
     shell:SystemTray.IsVisible="True">
 
     <!--LayoutRoot contains the root grid where all other page content is placed-->
-    <Grid x:Name="LayoutRoot" Background="Transparent">
+    <Grid x:Name="LayoutRoot" Background="Transparent"
+                            ManipulationCompleted="LayoutRoot_ManipulationCompleted"
+                            ManipulationDelta="LayoutRoot_ManipulationDelta"
+                            ManipulationStarted="LayoutRoot_ManipulationStarted">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="768"/>
+            <RowDefinition Height="0*"/>
         </Grid.RowDefinitions>
 
+        <Popup x:Name="messageDialog" IsOpen="True" MaxWidth="180" Margin="91,192,98,168" RenderTransformOrigin="0.4,1.185" Closed="messageDialog_Closed">
+            <StackPanel HorizontalAlignment="Center">
+                <TextBox x:Name="meTBox" Text=";jllkjn,mb,nnb," Foreground="Aqua" 
+                          Height="391" Width="228" FontFamily="Segoe WP Black" 
+                          FontSize="48" Background="#BF000000" HorizontalAlignment="Center" Loaded="meTBox_Loaded"/>
+                <Button x:Name="ok" Click="ok_Click" Height="86" Content="ok"></Button>
+            </StackPanel>
+        </Popup>
     </Grid>
 
 </phone:PhoneApplicationPage>
