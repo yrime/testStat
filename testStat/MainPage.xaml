@@ -17,27 +17,31 @@
     shell:SystemTray.IsVisible="True">
         <!--LayoutRoot is the root grid where all page content is placed-->
     <Grid x:Name="LayoutRoot" Background="Transparent">
+        <!-- окно сообщения, вводится имя пользователя и передается в другой фрейм
+        , где по нему создается файл-->
         <Popup Name="message" HorizontalAlignment="Center" VerticalAlignment="Center" 
                IsOpen="True" Height="180" Width="300">
+            <!-- рамочка -->
             <Border BorderBrush="Red"  Height="180" Width="300" BorderThickness="5.0">
                 <!--TitlePanel contains the name of the application and page title-->
                 <StackPanel>
                     <Grid>
+                        <!-- поле ввода имени и кнопка перехода на другй фрейм -->
                         <TextBox x:Name="tbMain" GotFocus="tbMain_GotFocus"
                                  LostFocus="tbMain_LostFocus" Text="Ваше имя">
                         </TextBox>
+                        <!-- кнопка очистки поля ввода -->
                         <Button x:Name="bClear" HorizontalAlignment="Right"
                                 BorderThickness="0" Content="&#xE10A;"
                                 FontFamily="Segoe UI Symbol" 
                                 Foreground="{StaticResource PhoneBackgroundBrush}"
                                 Visibility="Collapsed" Click="bClear_Click"></Button>
                     </Grid>
+                    <!-- кнопка перехода на другой фрейм -->
                     <Button Content="Ok" Height="87" HorizontalAlignment="Center" Width="200" 
                            Click="btn_name_enter"></Button>
                 </StackPanel>
             </Border>
-            <!--   <Button x:Name="stoper" RenderTransformOrigin="0.492,1.634" Height="109" FontFamily="Bell MT" Content="Stop" FontWeight="Bold" Click="stoper_Click" Margin="2,126,-2,-126"/>
-          -->
         </Popup>
 
     </Grid>

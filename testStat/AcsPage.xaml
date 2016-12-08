@@ -1,4 +1,4 @@
-﻿<phone:PhoneApplicationPage
+﻿<phone:PhoneApplicationPage x:Name="phoneApplicationPage"
     x:Class="testStat.AcsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,21 +14,32 @@
     shell:SystemTray.IsVisible="True">
 
     <!--LayoutRoot contains the root grid where all other page content is placed-->
+    <!-- обработчики нажатия по экрану -->
     <Grid x:Name="LayoutRoot" Background="Transparent"
                             ManipulationCompleted="LayoutRoot_ManipulationCompleted"
                             ManipulationDelta="LayoutRoot_ManipulationDelta"
-                            ManipulationStarted="LayoutRoot_ManipulationStarted">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" MinHeight="768"/>
-            <RowDefinition Height="0*"/>
-        </Grid.RowDefinitions>
+                            ManipulationStarted="LayoutRoot_ManipulationStarted" RenderTransformOrigin="0.565,0.509">
 
-        <Popup x:Name="messageDialog" IsOpen="True" MaxWidth="180" Margin="91,192,98,168" RenderTransformOrigin="0.4,1.185" Closed="messageDialog_Closed">
-            <StackPanel HorizontalAlignment="Center">
-                <TextBox x:Name="meTBox" Text=";jllkjn,mb,nnb," Foreground="Aqua" 
-                          Height="391" Width="228" FontFamily="Segoe WP Black" 
-                          FontSize="48" Background="#BF000000" HorizontalAlignment="Center" Loaded="meTBox_Loaded"/>
-                <Button x:Name="ok" Click="ok_Click" Height="86" Content="ok"></Button>
+        <!-- диалоговое окно с сообщением(инструкцией)
+             во время повторных итераций появляется с новым текстом( нопер повторной 
+             итерации и просьбой повторить -->
+        <Popup x:Name="messageDialog" IsOpen="True" MaxWidth="180">
+            <StackPanel Margin="-100,0,0,0" Width="386" Height="720" VerticalAlignment="Center" HorizontalAlignment="Left">
+                <TextBlock x:Name="meTBox" FontSize="36" Foreground="#FFE52828" VerticalAlignment="Center" Height="488" HorizontalAlignment="Center" Margin="36,0,23,0" Width="327">
+                    <LineBreak></LineBreak>
+                    <LineBreak></LineBreak>
+                    
+                    SDAknsd,KASnc
+                    <LineBreak/>
+                    JXNclJNXc.
+                    <LineBreak/>
+                    lNXCl.nXlcn:LX
+                    <LineBreak/>
+                    cn.LXNc.Ncx.
+                    <LineBreak/>
+                    mNCX;lknSD
+                </TextBlock>
+                <Button x:Name="ok" Click="ok_Click" Height="160" Content="ok" Margin="5,0,-10,0" Width="370" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontSize="72" FontFamily="Old English Text MT"/>
             </StackPanel>
         </Popup>
     </Grid>

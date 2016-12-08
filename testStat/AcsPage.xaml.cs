@@ -1,32 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Navigation;
 using Microsoft.Phone.Controls;
-using Microsoft.Phone.Shell;
 using Microsoft.Devices.Sensors;
-using System.Diagnostics;
 using System.Threading;
 using System.IO.IsolatedStorage;
-using System.Windows.Input;
 using System.Xml.Serialization;
 
 namespace testStat
 {
     public partial class AcsPage : PhoneApplicationPage
     {
-        ReaderWriterLockSlim locker;
-        ManualResetEventSlim slim;
-        bool end = false;
+        bool endThread = false;
         bool window = true;
+        bool sttoper = false;
 
-        int StatIteration = 0;
+        int StatIteration = -1;
         const int namberOfIteration = 10;
+        string peopleName;
 
-        List<buffer> bufferList = new List<buffer>();
+        public List<buffer> bufferList = new List<buffer>();
 
         Accelerometer myAcs;
         bufAcs bA;
@@ -37,18 +31,34 @@ namespace testStat
         IsolatedStorageFileStream fileStream;
 
         System.IO.StreamWriter sw;
-        XmlSerializer seriXML = new XmlSerializer(typeof(buffer));
-
-        bool sttoper = false;
+        XmlSerializer seriXML = new XmlSerializer(typeof(List<buffer>));
 
         public AcsPage()
         {
             InitializeComponent();
 
             file = IsolatedStorageFile.GetUserStoreForApplication();
-            
         }
-
+        private void creatOrOpenFile(int nam)
+        {
+            if (!file.FileExists("buFile" + nam + ".txt"))
+            {
+                fileStream = file.CreateFile("buFile" + nam + ".txt");
+            }
+            else
+            {
+                fileStream = file.OpenFile("buFile" + nam + ".txt", System.IO.FileMode.Open);
+            }
+            sw = new System.IO.StreamWriter(fileStream);
+        }
+        private void closeFile()
+        {
+            sw.Close();
+            fileStream.Close();
+        }
+        /*
+         * закрытие диалогового окна
+         */ 
         private void ok_Click(object sender, RoutedEventArgs e)
         {
             messageDialog.IsOpen = false;
@@ -59,26 +69,57 @@ namespace testStat
         {
             
         }
-
+        /**
+         * 
+         * обработчик события
+         * событие происходит, когда отпускают экран(tap)
+         * пока не закрыто диалоговое окно, событие не обрабатывается(
+         *  реализованно через логическую переменную stopper, возможно можно как то исправить через 
+         *  try-catch)
+         * останавливает работу акселерометра, закрывает файл
+         * меняет переменную итерации StatOfIteration
+         * Здесь следует запускать обработчик преобразования фурье(NO)
+         * 
+         */ 
         private void LayoutRoot_ManipulationCompleted(object sender, System.Windows.Input.ManipulationCompletedEventArgs e)
         {
+            ++StatIteration;
             if ((myAcs != null) && this.sttoper)
             {
+                meTBox.Text = " \n\n\nhgjh" + StatIteration.ToString();
                 myAcs.Stop();
                 myAcs.Dispose();
                 myAcs = null;
                 messageDialog.IsOpen = true;
-                end = true;
-                sw.Close();
-                if (StatIteration > namberOfIteration)
+                endThread = true; // thread copleted
+
+                this.creatOrOpenFile(StatIteration);
+                seriXML.Serialize(sw, bufferList);
+                bufferList.Clear();
+                this.closeFile();
+
+
+                if (StatIteration == namberOfIteration - 1)
                 {
                     this.sttoper = false;
                     StatIteration = 0;
-                    
+
+                    ConverterDataAcs nn = new ConverterDataAcs(namberOfIteration);
+                    if (nn.state())
+                    {
+                        messageDialog.IsOpen = true;
+                        Application.Current.Terminate();
+                        
+                    }
                 }
             }
         }
-
+        /*
+         * 
+         * Обработчик события
+         * происходит когда экран зажат и палец передвигается
+         * 
+         */ 
         private void LayoutRoot_ManipulationDelta(object sender, System.Windows.Input.ManipulationDeltaEventArgs e)
         {
             if (this.sttoper)
@@ -86,7 +127,14 @@ namespace testStat
                 bC = new bufScr((int)e.ManipulationOrigin.X, (int)e.ManipulationOrigin.Y);
             }
         }
-
+        /*
+         * 
+         * Обработчик события
+         * происходит когда палец касается экрана
+         * запускает датчик акселерометра
+         * запускает поток для снятия данных
+         * 
+         */ 
         private void LayoutRoot_ManipulationStarted(object sender, System.Windows.Input.ManipulationStartedEventArgs e)
         {
             if (this.sttoper)
@@ -106,31 +154,39 @@ namespace testStat
                     myAcs = null;
                 }
 
-                end = false;
-
+                endThread = false;
                 stData = new Thread(new ThreadStart(ThreadTask));
                 stData.Start();
             }
         }
+        /*
+         * 
+         * исполняемый код потока снятия данных
+         * пишет данные в файл
+         * 
+         */ 
         private void ThreadTask()
         {
             buffer b;
             int sleep = 50;
             int time = 0;
-    /*        Dispatcher.BeginInvoke(() =>
-            {
-                meTBox.Text = " hgjh";
-            });
-    */      while (!end)
+            // вроде как не успевает создаться streamwritter
+            Thread.Sleep(5);
+    //        Dispatcher.BeginInvoke(() =>
+    //        {
+    //            meTBox.Text = " hgjh";
+    //        });
+            while (!endThread)
             {
                 b = new buffer();
                 b.time = time;
                 b.acs = bA;
                 b.scr = bC;
-                seriXML.Serialize(sw, b);
+                bufferList.Add(b);
                 Thread.Sleep(sleep);
                 time += sleep;
             }
+            
         }
         private void myAcs_readingChanged(object sender, AccelerometerReadingEventArgs e)
         {
@@ -138,7 +194,7 @@ namespace testStat
         }
         /*
          * 
-         * Чтение и запись значений акселерометра в файл
+         * Чтение и запись значений акселерометра в переменную
          * 
          */
         private void my_readingChanged(AccelerometerReadingEventArgs e)
@@ -148,52 +204,24 @@ namespace testStat
                 bA = new bufAcs((float)e.X, (float)e.Y, (float)e.Z);
             }
         }
-
+        /*
+         * 
+         * Обработчик события
+         * происходит при открытие фрейма, получает параметры(имя) с предыдущего фрейма
+         * создает файл с этим именем
+         * 
+         * error почемуто возникает при каждом открытии элемента popup
+         * 
+         */ 
         private void meTBox_Loaded(object sender, RoutedEventArgs e)
         {
             if (window)
             {
-                string outData = NavigationContext.QueryString["UserString"].ToString();
-                if (!file.FileExists(outData+".txt"))
-                {
-                    fileStream = file.CreateFile(outData + ".txt");
-                }
-                else
-                {
-                    fileStream = file.OpenFile(outData + ".txt", System.IO.FileMode.Open);
-                }
-                sw = new System.IO.StreamWriter(fileStream);
+                this.peopleName = NavigationContext.QueryString["UserString"].ToString();
                 window = false;
             }
             
         }
     }
-    public struct bufAcs
-    {
-        public float x;
-        public float y;
-        public float z;
-        public bufAcs(float x, float y, float z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-    }
-    public struct bufScr
-    {
-        public int x;
-        public int y;
-        public bufScr(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-    }
-    public struct buffer
-    {
-        public double time;
-        public bufAcs acs;
-        public bufScr scr;
-    }
+
 }
